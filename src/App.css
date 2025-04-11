@@ -1,0 +1,328 @@
+/* src/App.css */
+
+/* --- Variables & Global Styles --- */
+:root {
+  --background-color: #ffffff;
+  --text-color: #555; /* Lighter grey for body text */
+  --title-color: #333; /* Darker grey for titles */
+  --primary-blue: #3498db; /* A nice blue */
+  --light-blue-bg: #ecf5fc; /* Very light blue for hover/status */
+  --border-color: #e0e0e0;
+  --dashed-border-blue: #a5cff1; /* Lighter blue for dashed border */
+  --button-text-color: #ffffff;
+  --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif; /* Example modern font */
+}
+
+/* Optional: Import a font like Inter from Google Fonts in your index.html */
+/* <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"> */
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--title-color);
+  font-weight: 500; /* Slightly bolder */
+}
+
+a {
+  color: var(--primary-blue);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #2a7aaf; /* Darker blue on hover */
+}
+
+/* --- Layout --- */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  max-width: 960px; /* Slightly wider max-width */
+  margin: 30px auto; /* More margin top/bottom */
+  width: 90%;
+}
+
+/* --- Navbar --- */
+.navbar {
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 20px;
+  height: 60px;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  /* Changed from space-between to flex-start to keep brand on left */
+  justify-content: flex-start;
+  align-items: center;
+  height: 100%;
+}
+
+.navbar-left {
+  /* Empty */
+}
+
+.navbar-brand {
+  font-weight: 700; /* Make brand bolder */
+  font-size: 1.3em; /* Slightly larger brand font */
+  color: var(--title-color); /* Use the title color */
+}
+
+.navbar-right {
+}
+
+.nav-link {
+  color: var(--text-color);
+  font-size: 0.95em;
+  padding: 5px 0; /* Minimal padding */
+  position: relative;
+}
+.nav-link:hover {
+  color: var(--title-color);
+}
+/* Optional: Add underline effect on hover like some sites */
+/* .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-blue);
+    transition: width 0.3s ease;
+  }
+  .nav-link:hover::after {
+    width: 100%;
+  } */
+
+.nav-icon {
+  font-size: 1.2em; /* Adjust icon size */
+  color: var(--text-color);
+  cursor: pointer;
+}
+.nav-icon:hover {
+  color: var(--title-color);
+}
+
+/* --- Main Header --- */
+.main-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.main-header h1 {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  font-weight: 700; /* Bolder H1 */
+}
+
+.main-header p {
+  font-size: 1.1em;
+  color: var(--text-color);
+}
+
+/* --- ImageUploader Box Style --- */
+.image-uploader-box {
+  border: 2px dashed var(--dashed-border-blue);
+  border-radius: 12px;
+  padding: 60px 30px; /* More padding */
+  background-color: #fdfdfe; /* Slightly off-white */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 250px; /* Ensure it has some height */
+  margin-bottom: 40px; /* Space below the box */
+}
+
+.select-image-button {
+  background-color: var(--primary-blue);
+  color: var(--button-text-color);
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  display: inline-flex; /* Align icon and text */
+  align-items: center;
+  gap: 8px; /* Space between icon and text */
+}
+
+.select-image-button:hover:not(:disabled) {
+  background-color: #2a7aaf; /* Darker blue */
+}
+
+.select-image-button:disabled {
+  background-color: #a0cfff;
+  cursor: not-allowed;
+}
+
+/* Styles for controls appearing after selection */
+.controls-and-status {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px; /* Limit width of controls */
+}
+
+.quality-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f8f9fa; /* Light background for contrast */
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.quality-control label {
+  font-size: 0.9em;
+  color: var(--title-color);
+}
+
+.quality-control input[type="number"] {
+  width: 55px;
+  padding: 6px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.quality-control button {
+  padding: 4px 8px;
+  font-size: 1em;
+  border: 1px solid var(--border-color);
+  background-color: #e9ecef; /* Button background */
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.quality-control button:hover:not(:disabled) {
+  background-color: #dee2e6;
+}
+
+.quality-control button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Upload button (appears after selection) */
+.upload-button {
+  background-color: #28a745; /* Green for upload action */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.upload-button:hover:not(:disabled) {
+  background-color: #218838; /* Darker green */
+}
+
+.upload-button:disabled {
+  background-color: #a3d9b1;
+  cursor: not-allowed;
+}
+
+/* --- Status & Result --- */
+.status {
+  margin-top: 0; /* Already has gap from parent */
+  padding: 10px 15px;
+  background-color: var(--light-blue-bg);
+  border: 1px solid var(--dashed-border-blue);
+  border-radius: 6px;
+  color: #0056b3; /* Darker blue text for status */
+  font-size: 0.95em;
+  text-align: center;
+  width: 100%;
+}
+
+.result {
+  margin-top: 10px; /* Reduced margin */
+  width: 100%;
+  text-align: center;
+}
+
+.result h3 {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.result img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-top: 5px;
+  display: inline-block; /* Center image if needed */
+}
+
+/* --- Features Section --- */
+.features-section {
+  margin-top: 60px; /* Space above features */
+  padding-top: 40px; /* Space within the section */
+  border-top: 1px solid var(--border-color); /* Separator line */
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(250px, 1fr)
+  ); /* Responsive grid */
+  gap: 40px; /* Gap between grid items */
+}
+
+.feature-item {
+  text-align: center;
+}
+
+.feature-icon {
+  font-size: 2.5em; /* Larger icons */
+  margin-bottom: 15px;
+  line-height: 1;
+}
+
+.feature-title {
+  font-size: 1.2em;
+  margin-bottom: 8px;
+  color: var(--title-color);
+  font-weight: 700; /* Bolder feature title */
+}
+
+.feature-description {
+  font-size: 0.95em;
+  color: var(--text-color);
+  line-height: 1.5;
+}
