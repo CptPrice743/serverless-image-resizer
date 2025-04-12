@@ -1,4 +1,3 @@
-// src/ImageUploader.jsx
 import React, { useState, useEffect, useRef } from "react";
 
 function ImageUploader() {
@@ -9,23 +8,22 @@ function ImageUploader() {
   const [resizedImageUrl, setResizedImageUrl] = useState(null);
   const [lastUploadedKey, setLastUploadedKey] = useState(null);
   const [quality, setQuality] = useState(85);
-  const [width, setWidth] = useState(128); // Default width
-  const [height, setHeight] = useState(128); // Default height
+  const [width, setWidth] = useState(128); 
+  const [height, setHeight] = useState(128); 
 
   // Refs for polling and file input
   const pollingIntervalRef = useRef(null);
   const pollingAttemptsRef = useRef(0);
   const fileInputRef = useRef(null);
 
-  // Configuration Constants (Replace with your actual values)
-  const outputBucketName = "vyomuchat-image-resizer-output"; // YOUR_OUTPUT_BUCKET_NAME
-  const region = "eu-north-1"; // YOUR_BUCKET_REGION (e.g., 'us-east-1')
-  const outputFormat = "jpeg"; // Or 'png', 'webp', etc. (Should match lambda output format)
-  const API_BASE_URL = "https://13rp2fscr2.execute-api.eu-north-1.amazonaws.com/api"; // YOUR_API_GATEWAY_ENDPOINT
-  const pollingIntervalMs = 2000; // Check every 2 seconds
-  const maxPollingAttempts = 15; // Stop after 30 seconds (15 * 2s)
+  // Configuration Constants
+  const outputBucketName = "vyomuchat-image-resizer-output"; 
+  const region = "eu-north-1"; 
+  const outputFormat = "jpeg"; 
+  const API_BASE_URL = "https://13rp2fscr2.execute-api.eu-north-1.amazonaws.com/api"; 
+  const pollingIntervalMs = 2000; 
+  const maxPollingAttempts = 15; 
 
-  // --- Helper Functions ---
 
   // Stop the polling interval
   const stopPolling = () => {
@@ -58,8 +56,8 @@ function ImageUploader() {
 
   // Update dimension state (width/height), ensuring positive integers
   const handleDimensionChange = (value, type) => {
-    const numValue = Math.max(1, Number(value)); // Ensure positive integer >= 1
-    const finalValue = isNaN(numValue) || numValue === 0 ? 128 : numValue; // Default if invalid or 0
+    const numValue = Math.max(1, Number(value)); 
+    const finalValue = isNaN(numValue) || numValue === 0 ? 128 : numValue;
     if (type === 'width') {
       setWidth(finalValue);
     } else if (type === 'height') {
@@ -108,12 +106,12 @@ function ImageUploader() {
       return parts.length > 1 ? parts[parts.length - 1] : `resized_${key}.${outputFormat.toLowerCase()}`;
   };
 
-  // --- Core Logic Functions ---
+
 
   // Function to handle the download button click
   const handleDownloadClick = async () => {
     if (!resizedImageUrl) return;
-    setUploadStatus('Preparing download...'); // Give user feedback
+    setUploadStatus('Preparing download...'); // Feedback message
     try {
         // Fetch the image data as a blob
         const response = await fetch(`${resizedImageUrl}?t=${Date.now()}`); // Add timestamp to bypass cache
@@ -277,7 +275,7 @@ function ImageUploader() {
 
   return (
     <div className="image-uploader-box">
-      {/* Hidden file input */}
+
       <input
         type="file"
         accept="image/jpeg, image/png, image/gif, image/webp" // Specify accepted types
