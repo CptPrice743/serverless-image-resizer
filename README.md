@@ -44,7 +44,6 @@ This project provides a user-friendly interface to quickly resize images online.
 7.  **Frontend Polling:** After initiating the upload, the frontend starts polling a calculated URL (based on the expected output key) for the resized image in the output bucket using `HEAD` requests.
 8.  **Display/Download:** Once the polling confirms the resized image exists (responds with 200 OK), the frontend displays the image using its public S3 URL and enables the download button.
 
-*(Note: The specific key structure `qXX_wXX_hXX/filename.ext` is an example based on adding dimension parameters; adapt if your final implementation differs.)*
 
 ## Setup
 
@@ -104,16 +103,3 @@ This project provides a user-friendly interface to quickly resize images online.
 6.  The resized image will appear once processing is complete.
 7.  Click the "Download Image" button to save the result.
 8.  Click "Resize Another Image" to start over.
-
-## Future Work (Optional)
-
-* Implement error handling for unsupported image types in Lambda.
-* Add support for more output formats (PNG, WebP with quality settings).
-* Use pre-signed GET URLs for downloading instead of making the output bucket public.
-* Implement a notification system (e.g., WebSocket) instead of polling for faster frontend updates.
-* Add frontend image preview before uploading.
-* Deploy the frontend to a static hosting service (like S3+CloudFront or Vercel/Netlify).
-
----
-
-Remember to replace placeholders like `<your-repository-url>`, bucket names, region, and API endpoint with your actual values. Congratulations on completing the project!
