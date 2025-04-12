@@ -359,3 +359,42 @@ a:hover {
   color: var(--text-color);
   line-height: 1.5;
 }
+
+/* --- Comparison View --- */
+.comparison-container {
+  display: flex; /* Use flexbox for layout */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  justify-content: center; /* Center items */
+  gap: 20px; /* Space between images */
+  align-items: flex-start; /* Align tops */
+  width: 100%;
+  margin-top: 20px;
+}
+
+.comparison-container .image-container {
+  flex: 1; /* Allow containers to grow */
+  min-width: 200px; /* Minimum width before wrapping */
+  text-align: center;
+}
+
+.comparison-container .image-container img {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-top: 5px;
+  display: inline-block;
+  /* Let the inline styles in JSX control max-width/height per image */
+}
+
+.comparison-container h3 {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.comparison-actions {
+  width: 100%; /* Make actions span full width below images */
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
