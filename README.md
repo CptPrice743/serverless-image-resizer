@@ -72,8 +72,8 @@ This project provides a user-friendly interface to quickly resize images online.
 
 1.  **Clone the Repository:**
     ```bash
-    git clone <your-repository-url>
-    cd <your-repository-directory>
+    git clone https://github.com/CptPrice743/serverless-image-resizer.git
+    cd serverless-image-resizer
     ```
 2.  **Install Dependencies:**
     ```bash
