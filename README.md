@@ -1,4 +1,4 @@
-# Serverless Image Resizer
+# Pixel Pusher
 
 A web application allowing users to upload images, resize them based on specified dimensions and quality settings, and download the results. Built using a serverless architecture on AWS.
 
