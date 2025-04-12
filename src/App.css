@@ -185,35 +185,56 @@ a:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 15px; /* Slightly reduced gap */
   width: 100%;
-  max-width: 400px; /* Limit width of controls */
+  max-width: 450px; /* Limit width of controls */
 }
 
-.quality-control {
+/* Common styles for Quality and Dimension control groups */
+.quality-control,
+.dimension-control {
   display: flex;
   align-items: center;
+  justify-content: center; /* Center items horizontally */
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
   gap: 8px;
   background-color: #f8f9fa; /* Light background for contrast */
   padding: 10px 15px;
   border-radius: 6px;
   border: 1px solid var(--border-color);
+  width: 100%; /* Make control sections take full width */
 }
 
-.quality-control label {
+/* Labels within control groups */
+.quality-control label,
+.dimension-control label {
   font-size: 0.9em;
   color: var(--title-color);
+  margin-right: 2px; /* Smaller gap before input */
 }
 
-.quality-control input[type="number"] {
-  width: 55px;
+/* Number inputs within control groups */
+.quality-control input[type="number"],
+.dimension-control input[type="number"] {
+  width: 60px; /* Fixed width for number inputs */
   padding: 6px;
   text-align: center;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 0.9em;
+   /* Remove browser default spinner arrows */
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.quality-control input[type=number]::-webkit-inner-spin-button,
+.quality-control input[type=number]::-webkit-outer-spin-button,
+.dimension-control input[type=number]::-webkit-inner-spin-button,
+.dimension-control input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
+/* +/- buttons specifically in quality control */
 .quality-control button {
   padding: 4px 8px;
   font-size: 1em;
@@ -233,7 +254,7 @@ a:hover {
   cursor: not-allowed;
 }
 
-/* Upload button (appears after selection) */
+/* Upload button (appears after selection, before processing) */
 .upload-button {
   background-color: #28a745; /* Green for upload action */
   color: white;
@@ -244,6 +265,8 @@ a:hover {
   font-size: 1em;
   font-weight: 500;
   transition: background-color 0.2s ease;
+  width: 80%; /* Make upload button wider */
+  max-width: 300px;
 }
 
 .upload-button:hover:not(:disabled) {
@@ -257,7 +280,7 @@ a:hover {
 
 /* --- Status & Result --- */
 .status {
-  margin-top: 0; /* Already has gap from parent */
+  margin-top: 0; /* Already has gap from parent flexbox */
   padding: 10px 15px;
   background-color: var(--light-blue-bg);
   border: 1px solid var(--dashed-border-blue);
@@ -265,7 +288,8 @@ a:hover {
   color: #0056b3; /* Darker blue text for status */
   font-size: 0.95em;
   text-align: center;
-  width: 100%;
+  width: 100%; /* Take full width within controls */
+  word-wrap: break-word; /* Wrap long status messages */
 }
 
 .result {
@@ -280,13 +304,57 @@ a:hover {
 }
 
 .result img {
-  max-width: 100%;
-  height: auto;
+  max-width: 100%; /* Ensure image doesn't overflow container */
+  height: auto;   /* Maintain aspect ratio */
+  /* max-height can be set dynamically if needed, but max-width usually suffices */
   border: 1px solid var(--border-color);
   border-radius: 8px;
   margin-top: 5px;
-  display: inline-block; /* Center image if needed */
+  display: inline-block; /* Allows centering via text-align on parent if needed */
 }
+
+/* Container for buttons below the result image */
+.result-actions {
+  margin-top: 20px; /* Space above the buttons */
+  display: flex;
+  justify-content: center; /* Center buttons horizontally */
+  align-items: center;
+  gap: 15px; /* Space between buttons */
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+}
+
+/* Common styles for buttons in the result area */
+.download-button,
+.result .select-image-button.secondary {
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  border: none;
+}
+
+/* Specific style for the download button */
+.download-button {
+  background-color: #17a2b8; /* Teal color for download */
+  color: white;
+}
+
+.download-button:hover {
+  background-color: #138496; /* Darker teal */
+}
+
+/* Specific style for the "Resize Another" button (using .secondary class) */
+.result .select-image-button.secondary {
+  background-color: #6c757d; /* Grey color for secondary action */
+  color: white;
+}
+
+.result .select-image-button.secondary:hover {
+  background-color: #5a6268; /* Darker grey */
+}
+
 
 /* --- Features Section --- */
 .features-section {

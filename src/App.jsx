@@ -7,7 +7,7 @@ import './App.css'; // Make sure CSS is imported
 // (Simplified: Only shows Website Name on the left)
 function Navbar() {
   // You can replace "Image Resizer" with your actual site name
-  const websiteName = "Image Resizer";
+  const websiteName = "Pixel Pusher";
 
   return (
     <nav className="navbar">
@@ -29,9 +29,9 @@ function Navbar() {
 // --- Features Component (Keep as is from previous response) ---
 function Features() {
   const featuresData = [
-    { icon: "🖼️", title: "Perfect quality", description: "The best online image resizer to resize your images at the highest quality." },
-    { icon: "👍", title: "Easy To Use", description: "Simply upload your image and enter a target size. It's as easy as that!" },
-    { icon: "💡", title: "Works Anywhere", description: "ImageResizer.com is browser-based (no software to install). It works on any platform (Windows, Linux, Mac)." },
+    { icon: "🖼️", title: "Perfect quality", description: "Resize your images with accuracy and clarity—because pixels deserve respect." },
+    { icon: "👍", title: "Click, Shrink, Done", description: "So easy your pet hamster could use it. Upload, resize, done!" },
+    { icon: "💡", title: "Web Wherever", description: "Runs in your browser—no installs, no drama. Works on Mac, PC, Linux... even on your smart fridge, probably." },  
   ];
 
   return (
@@ -56,7 +56,7 @@ function App() {
       <Navbar />
       <main className="main-content">
         <header className="main-header">
-          <h1>Image Resizer</h1>
+          <h1>Pixel Pusher</h1>
           <p>Easily resize images online for free.</p>
         </header>
         <ImageUploader />
