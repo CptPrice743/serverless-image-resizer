@@ -21,11 +21,10 @@ function ImageUploader() {
   const pollingAttemptsRef = useRef(0);
 
   // Configuration Constants (remain the same)
-  const outputBucketName = "vyomuchat-image-resizer-output";
-  const region = "eu-north-1";
-  const outputFormat = "jpeg";
-  const API_BASE_URL =
-    "https://13rp2fscr2.execute-api.eu-north-1.amazonaws.com/api";
+  const outputBucketName = import.meta.env.VITE_OUTPUT_BUCKET_NAME;
+  const region = import.meta.env.VITE_REGION;
+  const outputFormat = import.meta.env.VITE_OUTPUT_FORMAT || "jpeg";
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const pollingIntervalMs = 2000;
   const maxPollingAttempts = 15;
 
