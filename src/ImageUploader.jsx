@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+import FileInput from "./components/FileInput";
+import ImagePreview from "./components/ImagePreview";
+import ResizeControls from "./components/ResizeControls";
+import StatusDisplay from "./components/StatusDisplay";
+import ResultDisplay from "./components/ResultDisplay";
 
 function ImageUploader() {
-  // State Variables
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -12,17 +16,16 @@ function ImageUploader() {
   const [width, setWidth] = useState(128);
   const [height, setHeight] = useState(128);
 
-  // Refs for polling and file input
+  // Refs for polling
   const pollingIntervalRef = useRef(null);
   const pollingAttemptsRef = useRef(0);
-  const fileInputRef = useRef(null);
 
-  // Configuration Constants
-  const outputBucketName = "vyomuchat-image-resizer-output"; 
-  const region = "eu-north-1"; 
+  // Configuration Constants (remain the same)
+  const outputBucketName = "vyomuchat-image-resizer-output";
+  const region = "eu-north-1";
   const outputFormat = "jpeg";
   const API_BASE_URL =
-    "https://13rp2fscr2.execute-api.eu-north-1.amazonaws.com/api"; // Replace with your API Gateway Invoke URL base
+    "https://13rp2fscr2.execute-api.eu-north-1.amazonaws.com/api";
   const pollingIntervalMs = 2000;
   const maxPollingAttempts = 15;
 
@@ -36,9 +39,8 @@ function ImageUploader() {
     }
   };
 
-  // Handle file selection from input
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+  // Handle file selection (now receives file from FileInput component)
+  const handleFileSelect = (file) => {
     if (file) {
       setSelectedFile(file);
       setUploadStatus(`Selected: ${file.name}`);
@@ -47,7 +49,7 @@ function ImageUploader() {
       setIsLoading(false); // Reset loading state
       stopPolling(); // Stop any previous polling
 
-      // --- Generate preview for the selected file ---
+      // Generate preview for the selected file
       setOriginalPreviewUrl(null); // Clear previous original preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -58,7 +60,6 @@ function ImageUploader() {
         setUploadStatus("Error generating preview.");
       };
       reader.readAsDataURL(file);
-      // --- End of preview generation ---
     } else {
       // Clear states if no file is selected
       setOriginalPreviewUrl(null);
@@ -76,7 +77,18 @@ function ImageUploader() {
   // Update dimension state (width/height), ensuring positive integers
   const handleDimensionChange = (value, type) => {
     const numValue = Math.max(1, Number(value));
-    const finalValue = isNaN(numValue) || numValue === 0 ? 128 : numValue;
+    // Keep the existing value if the input is invalid or becomes 0, default to 1 if current value is also invalid
+    const finalValue =
+      isNaN(numValue) || numValue === 0
+        ? type === "width"
+          ? isNaN(width) || width === 0
+            ? 1
+            : width
+          : isNaN(height) || height === 0
+          ? 1
+          : height
+        : numValue;
+
     if (type === "width") {
       setWidth(finalValue);
     } else if (type === "height") {
@@ -84,16 +96,11 @@ function ImageUploader() {
     }
   };
 
-  // Increment/Decrement quality via buttons
-  const incrementQuality = () => {
-    handleQualityChange(quality + 1);
-  };
-  const decrementQuality = () => {
-    handleQualityChange(quality - 1);
-  };
-
   // Construct the expected output S3 key based on the input key format
   const getOutputKey = (baseKey) => {
+    if (!baseKey) return null; // Handle case where key is not set yet
+
+    // Updated format: q{quality}_w{width}_h{height}/filename.ext
     const prefixMatch = baseKey.match(/^(q\d+_w\d+_h\d+)\/(.*)/);
     if (prefixMatch) {
       const prefixPart = prefixMatch[1];
@@ -102,9 +109,10 @@ function ImageUploader() {
         filenamePart.substring(0, filenamePart.lastIndexOf(".")) ||
         filenamePart;
       const extension = outputFormat.toLowerCase();
-      return `resized-${prefixPart}/${baseName}.${extension}`;
+      return `resized-${prefixPart}/${baseName}.${extension}`; // e.g., resized-q85_w128_h128/myphoto.jpeg
     }
 
+    // Fallback for older format: quality{quality}/filename.ext
     const oldPrefixMatch = baseKey.match(/^(quality\d+)\/(.*)/);
     if (oldPrefixMatch) {
       console.warn(
@@ -115,20 +123,26 @@ function ImageUploader() {
         filenamePart.substring(0, filenamePart.lastIndexOf(".")) ||
         filenamePart;
       const extension = outputFormat.toLowerCase();
-      return `resized-${oldPrefixMatch[1]}/${baseName}.${extension}`;
+      // Construct a key simulating the new format based on old quality and current dimensions
+      return `resized-q${oldPrefixMatch[1]}_w${width}_h${height}/${baseName}.${extension}`;
     }
 
     console.error("Could not parse prefix from base key:", baseKey);
-    return `resized-unknown/${baseKey}`;
+    // Provide a default/error key structure if parsing fails
+    const safeBaseKey = baseKey.split("/").pop() || "unknown_file"; // Get filename part or default
+    const errorBaseName =
+      safeBaseKey.substring(0, safeBaseKey.lastIndexOf(".")) || safeBaseKey;
+    return `resized-error/${errorBaseName}.${outputFormat.toLowerCase()}`;
   };
 
-  // Extract original filename from the structured key
+  // Extract original filename from the structured key for download
   const getOriginalFilenameFromKey = (key) => {
     if (!key) return `resized_image.${outputFormat.toLowerCase()}`;
+    // Assumes key format is prefix/filename.ext
     const parts = key.split("/");
     return parts.length > 1
       ? parts[parts.length - 1]
-      : `resized_${key}.${outputFormat.toLowerCase()}`;
+      : `resized_${key}.${outputFormat.toLowerCase()}`; // Fallback if no slash
   };
 
   // Function to handle the download button click
@@ -136,6 +150,7 @@ function ImageUploader() {
     if (!resizedImageUrl) return;
     setUploadStatus("Preparing download...");
     try {
+      // Append timestamp to URL to bypass browser cache for the download fetch
       const response = await fetch(`${resizedImageUrl}?t=${Date.now()}`);
       if (!response.ok) {
         throw new Error(
@@ -146,13 +161,14 @@ function ImageUploader() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      const originalFilename = getOriginalFilenameFromKey(lastUploadedKey);
+      const originalFilename = getOriginalFilenameFromKey(lastUploadedKey); // Use the stored key
       const baseName =
         originalFilename.substring(0, originalFilename.lastIndexOf(".")) ||
         originalFilename;
+      // Construct a more descriptive download filename
       link.setAttribute(
         "download",
-        `resized_${baseName}.${outputFormat.toLowerCase()}`
+        `resized_${baseName}_${width}x${height}_q${quality}.${outputFormat.toLowerCase()}`
       );
       document.body.appendChild(link);
       link.click();
@@ -174,22 +190,21 @@ function ImageUploader() {
     }
 
     setIsLoading(true);
-    setResizedImageUrl(null); // Keep original preview, clear resized one
+    setResizedImageUrl(null); // Clear previous resized image, keep original preview
     setUploadStatus("Getting upload URL...");
     setLastUploadedKey(null);
     stopPolling();
 
     try {
       const contentType = fileToUpload.type || "application/octet-stream";
-      // ** Important: Ensure your generate-presigned-url Lambda function is updated **
-      // ** to include width and height in the key generation logic if needed. **
-      // ** Example key: q85_w128_h128/myphoto.jpg **
+      // Construct API URL with all parameters
       const apiUrl = `${API_BASE_URL}/get-upload-url?fileName=${encodeURIComponent(
         fileToUpload.name
       )}&quality=${quality}&width=${width}&height=${height}&contentType=${encodeURIComponent(
         contentType
       )}`;
       const response = await fetch(apiUrl);
+
       if (!response.ok) {
         const errorData = await response
           .json()
@@ -217,50 +232,62 @@ function ImageUploader() {
         );
       }
 
-      setUploadStatus(`Upload successful! Waiting for resized version...`);
-      setLastUploadedKey(key);
+      setUploadStatus(`Upload successful! Processing image...`); // Updated status
+      setLastUploadedKey(key); // Store the key returned by the backend (e.g., q85_w128_h128/myphoto.jpg)
       setSelectedFile(null); // Clear selection state after starting upload
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
       // setIsLoading remains true while polling
     } catch (error) {
       console.error("Error during upload:", error);
       setUploadStatus(`Error: ${error.message}`);
       setIsLoading(false);
       setLastUploadedKey(null);
-      // Don't clear originalPreviewUrl on upload error
       stopPolling();
     }
   };
 
   // --- useEffect for Polling ---
   useEffect(() => {
-    stopPolling(); // Stop previous polling
+    stopPolling(); // Ensure no previous polling is running
 
     if (lastUploadedKey) {
+      // Derive the expected output key using the stored input key and format
       const outputKey = getOutputKey(lastUploadedKey);
+      if (!outputKey) {
+        console.error("Could not determine output key. Stopping polling.");
+        setUploadStatus(
+          "Error: Could not determine where to find the resized image."
+        );
+        setIsLoading(false);
+        return;
+      }
+
       const publicUrl = `https://${outputBucketName}.s3.${region}.amazonaws.com/${outputKey}`;
 
       console.log("Starting polling for expected output key:", outputKey);
       console.log("Polling URL:", publicUrl);
-      pollingAttemptsRef.current = 0;
+      pollingAttemptsRef.current = 0; // Reset attempts counter
 
       pollingIntervalRef.current = setInterval(async () => {
         pollingAttemptsRef.current += 1;
         console.log(
           `Polling attempt #${pollingAttemptsRef.current} for ${outputKey}`
         );
+        setUploadStatus(
+          `Processing... Checking for result (${pollingAttemptsRef.current}/${maxPollingAttempts})`
+        ); // Update status during polling
 
         if (pollingAttemptsRef.current > maxPollingAttempts) {
           console.error("Polling timed out for:", publicUrl);
-          setUploadStatus("Image processing timed out. Please try again.");
+          setUploadStatus(
+            "Image processing timed out. Please try again or check logs."
+          );
           setIsLoading(false);
           stopPolling();
           return;
         }
 
         try {
+          // Add cache-busting query parameter
           const headResponse = await fetch(`${publicUrl}?t=${Date.now()}`, {
             method: "HEAD",
             cache: "no-store",
@@ -269,206 +296,129 @@ function ImageUploader() {
           if (headResponse.ok) {
             console.log("Polling successful! Image found at:", publicUrl);
             stopPolling();
-            setResizedImageUrl(`${publicUrl}?t=${Date.now()}`);
+            setResizedImageUrl(`${publicUrl}?t=${Date.now()}`); // Add cache buster to display URL too
             setUploadStatus("Resized image loaded.");
             setIsLoading(false);
           } else if (
             headResponse.status === 403 ||
             headResponse.status === 404
           ) {
+            // These statuses are expected while the image is processing
             console.log(
               `Polling attempt failed with status: ${headResponse.status} (Image not ready yet?)`
             );
           } else {
+            // Log unexpected statuses but continue polling
             console.warn(
-              `Polling attempt failed with status: ${headResponse.status}. Will keep trying.`
+              `Polling attempt failed with unexpected status: ${headResponse.status}. Will keep trying.`
             );
+            // Potentially add more specific error handling here if needed
           }
         } catch (error) {
+          // Network errors during polling
           console.error("Polling network error:", error);
+          // Optionally update status, e.g., setUploadStatus("Polling error, retrying...");
+          // Consider stopping polling after several consecutive network errors
         }
       }, pollingIntervalMs);
     }
 
+    // Cleanup function for useEffect
     return () => {
       stopPolling();
-    }; // Cleanup on unmount or key change
-  }, [lastUploadedKey, outputBucketName, region]); // Dependencies
+    };
+  }, [lastUploadedKey, outputBucketName, region, width, height]); // Added width/height as deps in case they affect outputKey logic
 
-  // Trigger the hidden file input
-  const handleSelectImageClick = () => {
-    fileInputRef.current?.click();
+  // Reset state for resizing another image
+  const handleReset = () => {
+    setResizedImageUrl(null);
+    setOriginalPreviewUrl(null);
+    setUploadStatus("");
+    setLastUploadedKey(null);
+    setSelectedFile(null);
+    setIsLoading(false);
+    stopPolling();
+    // Note: FileInput component handles clearing its own input value now
   };
 
   // --- Render Logic ---
+  const showInitialButton =
+    !selectedFile && !isLoading && !resizedImageUrl && !originalPreviewUrl;
+  const showControls = selectedFile && !isLoading && !resizedImageUrl;
+  const showOriginalPreview =
+    originalPreviewUrl && !isLoading && !resizedImageUrl && selectedFile;
+  const showUploadButton = showControls; // Show upload button when controls are shown
+  const showResults = resizedImageUrl && originalPreviewUrl;
+  const showProcessingMessage = isLoading && !resizedImageUrl; // Show "Processing..." only when loading and no result yet
+
   return (
     <div className="image-uploader-box">
-      <input
-        type="file"
-        accept="image/jpeg, image/png, image/gif, image/webp"
-        onChange={handleFileChange}
-        ref={fileInputRef}
-        style={{ display: "none" }}
-        disabled={isLoading}
-      />
-
-      {/* Show "Select Image" button only when no file is selected/processing/shown */}
-      {!selectedFile &&
-        !isLoading &&
-        !resizedImageUrl &&
-        !originalPreviewUrl && (
-          <button
-            className="select-image-button"
-            onClick={handleSelectImageClick}
-            disabled={isLoading}
-          >
-            🖼️ Select Image
-          </button>
-        )}
-
-      {/* Show initial preview right after selection */}
-      {originalPreviewUrl && !isLoading && !resizedImageUrl && selectedFile && (
-        <div className="original-preview" style={{ marginBottom: "20px" }}>
-          <h3>Preview:</h3>
-          <img
-            src={originalPreviewUrl}
-            alt="Selected Preview"
-            style={{
-              maxWidth: "300px",
-              maxHeight: "300px",
-              border: "1px solid #eee",
-              borderRadius: "4px",
-            }}
-          />
-        </div>
+      {showInitialButton && (
+        <FileInput onFileSelect={handleFileSelect} isLoading={isLoading} />
       )}
 
-      {/* Show controls and status/results area */}
-      {(selectedFile || isLoading || resizedImageUrl || originalPreviewUrl) && (
+      {!showInitialButton && (
         <div className="controls-and-status">
-          {/* Show controls only when a file is selected and not loading/finished */}
-          {!isLoading && !resizedImageUrl && selectedFile && (
-            <>
-              {/* Quality Controls */}
-              <div className="quality-control">
-                <label htmlFor="qualityInput">Quality (%): </label>
-                <button
-                  onClick={decrementQuality}
-                  disabled={isLoading || quality <= 1}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  id="qualityInput"
-                  min="1"
-                  max="100"
-                  value={quality}
-                  onChange={(e) => handleQualityChange(e.target.value)}
-                  disabled={isLoading}
-                />
-                <button
-                  onClick={incrementQuality}
-                  disabled={isLoading || quality >= 100}
-                >
-                  +
-                </button>
-              </div>
+          {showOriginalPreview && (
+            <ImagePreview
+              src={originalPreviewUrl}
+              alt="Selected Preview"
+              title="Preview:"
+            />
+          )}
 
-              {/* Dimension Controls */}
-              <div className="dimension-control">
-                <label htmlFor="widthInput">Max Width: </label>
-                <input
-                  type="number"
-                  id="widthInput"
-                  min="1"
-                  value={width}
-                  onChange={(e) =>
-                    handleDimensionChange(e.target.value, "width")
-                  }
-                  disabled={isLoading}
-                />
-                <label htmlFor="heightInput">Max Height: </label>
-                <input
-                  type="number"
-                  id="heightInput"
-                  min="1"
-                  value={height}
-                  onChange={(e) =>
-                    handleDimensionChange(e.target.value, "height")
-                  }
-                  disabled={isLoading}
-                />
-              </div>
+          {showControls && (
+            <ResizeControls
+              quality={quality}
+              width={width}
+              height={height}
+              onQualityChange={handleQualityChange}
+              onDimensionChange={handleDimensionChange}
+              isLoading={isLoading}
+            />
+          )}
 
-              {/* Upload Button */}
+          {showUploadButton && (
+            <button
+              className="upload-button"
+              onClick={handleUpload}
+              disabled={!selectedFile || isLoading}
+            >
+              Upload & Resize Image
+            </button>
+          )}
+
+          <StatusDisplay
+            status={uploadStatus}
+            isLoading={isLoading}
+            showProcessingMessage={showProcessingMessage}
+          />
+
+          {showResults && (
+            <ResultDisplay
+              originalPreviewUrl={originalPreviewUrl}
+              resizedImageUrl={resizedImageUrl}
+              width={width}
+              height={height}
+              onDownload={handleDownloadClick}
+              onReset={handleReset}
+              isLoading={isLoading}
+            />
+          )}
+
+          {originalPreviewUrl &&
+            !selectedFile &&
+            !isLoading &&
+            !resizedImageUrl && (
               <button
-                className="upload-button"
-                onClick={handleUpload}
-                disabled={!selectedFile || isLoading}
+                className="select-image-button secondary"
+                style={{ marginTop: "20px" }} // Add some space
+                onClick={handleReset}
+                disabled={isLoading}
               >
-                Upload & Resize Image
+                Select Different Image
               </button>
-            </>
-          )}
-
-          {/* Status Message Area */}
-          {uploadStatus && <p className="status">{uploadStatus}</p>}
-
-          {/* Loading Indicator during processing */}
-          {isLoading && !resizedImageUrl && (
-            <p className="status">Processing, please wait...</p>
-          )}
-
-          {/* Result Area with Side-by-Side Comparison */}
-          {resizedImageUrl && originalPreviewUrl && (
-            <div className="result comparison-container">
-              <div className="image-container">
-                <h3>Original:</h3>
-                <img
-                  src={originalPreviewUrl}
-                  alt="Original Preview"
-                  style={{ maxWidth: "100%", maxHeight: "250px" }} // Style as needed
-                />
-              </div>
-              <div className="image-container">
-                <h3>Resized:</h3>
-                <img
-                  key={resizedImageUrl} // Force re-render if URL changes slightly (cache busting)
-                  src={resizedImageUrl}
-                  alt="Resized"
-                  // Use the state values for max dimensions for the resized image display
-                  style={{ maxWidth: `${width}px`, maxHeight: `${height}px` }}
-                />
-              </div>
-              {/* Action Buttons Container - place below comparison */}
-              <div className="result-actions comparison-actions">
-                <button
-                  className="download-button"
-                  onClick={handleDownloadClick}
-                  disabled={isLoading}
-                >
-                  💾 Download Resized
-                </button>
-                <button
-                  className="select-image-button secondary"
-                  onClick={() => {
-                    setResizedImageUrl(null);
-                    setOriginalPreviewUrl(null); // <-- Clear original preview too
-                    setUploadStatus("");
-                    setLastUploadedKey(null);
-                    setSelectedFile(null);
-                    setIsLoading(false);
-                    stopPolling();
-                    if (fileInputRef.current) fileInputRef.current.value = "";
-                    // Optionally trigger file input again: handleSelectImageClick();
-                  }}
-                >
-                  Resize Another Image
-                </button>
-              </div>
-            </div>
-          )}
+            )}
         </div>
       )}
     </div>
